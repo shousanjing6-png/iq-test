@@ -1,7 +1,7 @@
 // メインJavaScript - 共通機能
 
 // Google Sheets API URL
-const GOOGLE_SHEETS_API = 'https://script.google.com/macros/s/AKfycbwll8NObL6l6umV_NQIQ1QftXfhg9H-brbuQZ-yN-yBIvcK9c8wzDFpUzY3Q5-oAK5O/exec';
+const GOOGLE_SHEETS_API = 'https://script.google.com/macros/s/AKfycbzcKzdz9eGmR6KVhBvRxHPs4hY5qCQD4MuLI1-XXq63F-QnP-fI3J_RYjGclc1f22V7/exec';
 
 // Google Sheetsにデータを送信
 function sendToGoogleSheets(data) {
