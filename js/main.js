@@ -1,5 +1,22 @@
 // メインJavaScript - 共通機能
 
+// Google Sheets API URL
+const GOOGLE_SHEETS_API = 'https://script.google.com/macros/s/AKfycbwll8NObL6l6umV_NQIQ1QftXfhg9H-brbuQZ-yN-yBIvcK9c8wzDFpUzY3Q5-oAK5O/exec';
+
+// Google Sheetsにデータを送信
+function sendToGoogleSheets(data) {
+    fetch(GOOGLE_SHEETS_API, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    }).catch(function(error) {
+        console.log('送信エラー:', error);
+    });
+}
+
 // ローカルストレージ管理
 const Storage = {
     save(key, data) {
@@ -74,11 +91,26 @@ function evaluateScore(score, total) {
     return { grade: 'E', message: '復習が必要です。' };
 }
 
-// IQスコア計算（簡易版）
+// IQスコア計算（改良版）
+// 30問中の正答数からIQを推定
+// 平均正答率50%（15問）= IQ100、標準偏差を問題数の15%（約4.5問）と仮定
 function calculateIQ(score, total, avgScore) {
-    // 標準偏差を15と仮定した簡易計算
-    const zScore = (score - avgScore) / (total * 0.15);
-    return Math.round(100 + zScore * 15);
+    // 正答率を計算
+    const percentage = score / total;
+
+    // 正答率に基づくIQ計算
+    // 50% = IQ100を基準に、正答率の変動をIQに変換
+    // 標準偏差15%（正答率）= IQ15点の変動
+    const avgPercentage = avgScore / total;
+    const stdDev = 0.15; // 正答率の標準偏差を15%と仮定
+
+    const zScore = (percentage - avgPercentage) / stdDev;
+    let iq = Math.round(100 + zScore * 15);
+
+    // 現実的な範囲に制限（70〜160）
+    iq = Math.max(70, Math.min(160, iq));
+
+    return iq;
 }
 
 // シャッフル機能

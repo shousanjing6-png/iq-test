@@ -690,7 +690,7 @@ function submitTest() {
     });
 
     const total = mensaQuestions.length;
-    const avgScore = total * 0.4; // 高難度のため平均正答率40%と仮定
+    const avgScore = total * 0.5; // 平均正答率50% = IQ100
     const iq = calculateIQ(score, total, avgScore);
 
     // 受験者情報を取得
@@ -711,6 +711,20 @@ function submitTest() {
     const results = Storage.load('testResults') || [];
     results.push(result);
     Storage.save('testResults', results);
+
+    // Google Sheetsに送信
+    sendToGoogleSheets({
+        examineeName: result.examineeName,
+        examineeBirth: result.examineeBirth,
+        type: 'Mensa',
+        score: result.score,
+        total: result.total,
+        percentage: Math.round((result.score / result.total) * 100),
+        iq: result.iq,
+        time: result.time,
+        theme: '',
+        essayText: ''
+    });
 
     // 受験者の完了テストを更新
     if (examinee.name) {

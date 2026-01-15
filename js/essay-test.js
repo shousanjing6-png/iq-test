@@ -231,6 +231,20 @@ function submitEssay() {
     results.push(result);
     Storage.save('testResults', results);
 
+    // Google Sheetsに送信
+    sendToGoogleSheets({
+        examineeName: result.examineeName,
+        examineeBirth: result.examineeBirth,
+        type: '小論文',
+        score: '',
+        total: '',
+        percentage: '',
+        iq: '',
+        time: result.time,
+        theme: result.themeTitle,
+        essayText: result.text
+    });
+
     // 受験者の完了テストを更新
     if (examinee.name) {
         if (!examinee.completedTests) examinee.completedTests = [];
