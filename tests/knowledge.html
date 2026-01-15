@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一般教養テスト - IQテスト</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← トップに戻る</a>
+
+        <div class="test-container">
+            <div class="test-header">
+                <div>
+                    <h2>一般教養テスト</h2>
+                    <p class="question-count">問題 <span id="currentQuestion">1</span> / <span id="totalQuestions">15</span></p>
+                </div>
+                <div class="timer" id="timer">10:00</div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+
+            <div id="questionContainer" class="question-container">
+                <!-- 問題がここに表示される -->
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" id="prevBtn" onclick="prevQuestion()" disabled>前の問題</button>
+                <button class="nav-btn next" id="nextBtn" onclick="nextQuestion()">次の問題</button>
+                <button class="nav-btn submit" id="submitBtn" onclick="submitTest()" style="display:none">テストを終了</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/knowledge-test.js"></script>
+</body>
+</html>

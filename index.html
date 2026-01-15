@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQテスト</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .registration-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            margin: 50px auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .registration-container h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .date-inputs select {
+            flex: 1;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .register-btn:hover {
+            opacity: 0.9;
+        }
+
+        .form-error {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .test-flow {
+            display: none;
+        }
+
+        .flow-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 700px;
+            margin: 50px auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .flow-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .flow-header h2 {
+            color: #333;
+        }
+
+        .examinee-info {
+            background: #f8f9ff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .flow-step.active {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .flow-step.completed {
+            border-color: #2ecc71;
+            background: #e8f8f0;
+        }
+
+        .flow-step.locked {
+            opacity: 0.5;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 20px;
+        }
+
+        .flow-step.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+
+        .flow-step.completed .step-number {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .step-content p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .step-btn {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        .step-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .step-status {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .complete-container {
+            display: none;
+            text-align: center;
+        }
+
+        .complete-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IQテスト</h1>
+            <p class="subtitle">あなたの知能を多角的に測定します</p>
+        </header>
+
+        <!-- 受験者登録画面 -->
+        <div id="registrationScreen">
+            <div class="registration-container">
+                <h2>受験者情報を入力してください</h2>
+
+                <div class="form-group">
+                    <label>氏名 <span style="color:#e74c3c;">*</span></label>
+                    <input type="text" id="examineeName" placeholder="山田 太郎">
+                    <p class="form-error" id="nameError">氏名を入力してください</p>
+                </div>
+
+                <div class="form-group">
+                    <label>生年月日 <span style="color:#e74c3c;">*</span></label>
+                    <div class="date-inputs">
+                        <select id="birthYear">
+                            <option value="">年</option>
+                        </select>
+                        <select id="birthMonth">
+                            <option value="">月</option>
+                        </select>
+                        <select id="birthDay">
+                            <option value="">日</option>
+                        </select>
+                    </div>
+                    <p class="form-error" id="dateError">生年月日を選択してください</p>
+                </div>
+
+                <button class="register-btn" onclick="registerExaminee()">テストを開始する</button>
+            </div>
+        </div>
+
+        <!-- テストフロー画面 -->
+        <div id="testFlowScreen" class="test-flow">
+            <div class="flow-container">
+                <div class="flow-header">
+                    <h2>テスト一覧</h2>
+                    <p>すべてのテストを順番に受験してください</p>
+                </div>
+
+                <div class="examinee-info">
+                    <span><strong>受験者:</strong> <span id="displayName"></span></span>
+                    <span><strong>生年月日:</strong> <span id="displayBirth"></span></span>
+                </div>
+
+                <div class="flow-steps">
+                    <div class="flow-step" id="step1">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Mensaタイプテスト</h3>
+                            <p>図形パターン認識、数列問題、論理パズル（30問・30分）</p>
+                        </div>
+                        <button class="step-btn" id="step1Btn" onclick="startTest('mensa')">開始</button>
+                    </div>
+
+                    <div class="flow-step locked" id="step2">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>一般教養テスト</h3>
+                            <p>科学、歴史、地理、文学など（15問・10分）</p>
+                        </div>
+                        <button class="step-btn" id="step2Btn" onclick="startTest('knowledge')" disabled>開始</button>
+                    </div>
+
+                    <div class="flow-step locked" id="step3">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>小論文テスト</h3>
+                            <p>与えられたテーマについて論述（800〜1200字・20分）</p>
+                        </div>
+                        <button class="step-btn" id="step3Btn" onclick="startTest('essay')" disabled>開始</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 完了画面 -->
+        <div id="completeScreen" class="complete-container">
+            <div class="flow-container">
+                <div class="complete-icon">🎉</div>
+                <h2>すべてのテストが完了しました</h2>
+                <p style="color:#666;margin:20px 0;">お疲れ様でした。結果は管理者画面から確認できます。</p>
+                <button class="register-btn" onclick="resetTest()" style="max-width:300px;margin:0 auto;">最初からやり直す</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 IQテスト</p>
+            <a href="admin.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;">管理者画面</a>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // 生年月日のセレクトボックスを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearSelect = document.getElementById('birthYear');
+            const monthSelect = document.getElementById('birthMonth');
+            const daySelect = document.getElementById('birthDay');
+
+            // 年（1940〜2010）
+            for (let y = 2010; y >= 1940; y--) {
+                yearSelect.innerHTML += `<option value="${y}">${y}年</option>`;
+            }
+
+            // 月
+            for (let m = 1; m <= 12; m++) {
+                monthSelect.innerHTML += `<option value="${m}">${m}月</option>`;
+            }
+
+            // 日
+            for (let d = 1; d <= 31; d++) {
+                daySelect.innerHTML += `<option value="${d}">${d}日</option>`;
+            }
+
+            // 保存された状態を確認
+            checkExamineeStatus();
+        });
+
+        function checkExamineeStatus() {
+            const examinee = Storage.load('currentExaminee');
+
+            if (examinee) {
+                document.getElementById('displayName').textContent = examinee.name;
+                document.getElementById('displayBirth').textContent = examinee.birthDate;
+
+                document.getElementById('registrationScreen').style.display = 'none';
+                document.getElementById('testFlowScreen').style.display = 'block';
+
+                updateTestFlow(examinee);
+            }
+        }
+
+        function registerExaminee() {
+            const name = document.getElementById('examineeName').value.trim();
+            const year = document.getElementById('birthYear').value;
+            const month = document.getElementById('birthMonth').value;
+            const day = document.getElementById('birthDay').value;
+
+            let valid = true;
+
+            // バリデーション
+            if (!name) {
+                document.getElementById('nameError').style.display = 'block';
+                valid = false;
+            } else {
+                document.getElementById('nameError').style.display = 'none';
+            }
+
+            if (!year || !month || !day) {
+                document.getElementById('dateError').style.display = 'block';
+                valid = false;
+            } else {
+                document.getElementById('dateError').style.display = 'none';
+            }
+
+            if (!valid) return;
+
+            const birthDate = `${year}年${month}月${day}日`;
+
+            const examinee = {
+                name: name,
+                birthDate: birthDate,
+                birthYear: year,
+                birthMonth: month,
+                birthDay: day,
+                registeredAt: new Date().toISOString(),
+                completedTests: []
+            };
+
+            Storage.save('currentExaminee', examinee);
+
+            document.getElementById('displayName').textContent = name;
+            document.getElementById('displayBirth').textContent = birthDate;
+
+            document.getElementById('registrationScreen').style.display = 'none';
+            document.getElementById('testFlowScreen').style.display = 'block';
+
+            updateTestFlow(examinee);
+        }
+
+        function updateTestFlow(examinee) {
+            const completed = examinee.completedTests || [];
+
+            // ステップ1: Mensa
+            if (completed.includes('mensa')) {
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step1').classList.add('completed');
+                document.getElementById('step1Btn').outerHTML = '<span class="step-status">✓ 完了</span>';
+
+                // ステップ2を有効化
+                document.getElementById('step2').classList.remove('locked');
+                document.getElementById('step2').classList.add('active');
+                document.getElementById('step2Btn').disabled = false;
+            } else {
+                document.getElementById('step1').classList.add('active');
+            }
+
+            // ステップ2: 一般教養
+            if (completed.includes('knowledge')) {
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step2').classList.add('completed');
+                document.getElementById('step2Btn').outerHTML = '<span class="step-status">✓ 完了</span>';
+
+                // ステップ3を有効化
+                document.getElementById('step3').classList.remove('locked');
+                document.getElementById('step3').classList.add('active');
+                document.getElementById('step3Btn').disabled = false;
+            }
+
+            // ステップ3: 小論文
+            if (completed.includes('essay')) {
+                document.getElementById('step3').classList.remove('active');
+                document.getElementById('step3').classList.add('completed');
+                document.getElementById('step3Btn').outerHTML = '<span class="step-status">✓ 完了</span>';
+
+                // 全完了
+                document.getElementById('testFlowScreen').style.display = 'none';
+                document.getElementById('completeScreen').style.display = 'block';
+            }
+        }
+
+        function startTest(type) {
+            if (type === 'mensa') {
+                location.href = 'tests/mensa.html';
+            } else if (type === 'knowledge') {
+                location.href = 'tests/knowledge.html';
+            } else if (type === 'essay') {
+                location.href = 'tests/essay.html';
+            }
+        }
+
+        function resetTest() {
+            Storage.remove('currentExaminee');
+            location.reload();
+        }
+    </script>
+</body>
+</html>

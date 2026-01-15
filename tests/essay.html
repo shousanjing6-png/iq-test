@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小論文テスト - IQテスト</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← トップに戻る</a>
+
+        <div class="test-container">
+            <div class="test-header">
+                <div>
+                    <h2>小論文テスト</h2>
+                    <p>与えられたテーマについて論理的に考えを述べてください</p>
+                </div>
+                <div class="timer" id="timer">20:00</div>
+            </div>
+
+            <div id="themeSelection" class="essay-container">
+                <h3>テーマを選択してください</h3>
+                <div class="theme-options" id="themeOptions">
+                    <!-- テーマがここに表示される -->
+                </div>
+            </div>
+
+            <div id="essayContainer" class="essay-container" style="display:none;">
+                <div class="essay-theme" id="selectedTheme">
+                    <!-- 選択されたテーマがここに表示される -->
+                </div>
+
+                <div class="essay-guidelines">
+                    <p><strong>注意事項:</strong></p>
+                    <ul>
+                        <li>800字〜1200字で記述してください</li>
+                        <li>論理的な構成を心がけてください</li>
+                        <li>序論・本論・結論の形式を推奨します</li>
+                    </ul>
+                </div>
+
+                <textarea id="essayText" placeholder="ここに小論文を入力してください..." oninput="updateCharCount()"></textarea>
+                <div class="char-count" id="charCount">0 / 800〜1200字</div>
+
+                <div class="auto-save-notice" id="autoSaveNotice">
+                    自動保存中...
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" id="backToThemes" onclick="backToThemes()" style="display:none;">テーマ選択に戻る</button>
+                <button class="nav-btn submit" id="submitBtn" onclick="submitEssay()" style="display:none;">提出する</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/essay-test.js"></script>
+</body>
+</html>
