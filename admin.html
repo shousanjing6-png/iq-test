@@ -331,6 +331,24 @@
             background: #2980b9;
         }
 
+        .fetch-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .fetch-btn:hover {
+            background: #27ae60;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
         .stats-info {
             background: #f8f9ff;
             border-radius: 10px;
@@ -867,6 +885,7 @@
             <div class="admin-header">
                 <h2>管理者画面</h2>
                 <div style="display: flex; gap: 10px;">
+                    <button class="fetch-btn" onclick="fetchCloudData()">クラウドから取得</button>
                     <button class="recalc-btn" onclick="recalculateIQ()">IQ再計算</button>
                     <button class="clear-btn" onclick="clearAllData()">全データ削除</button>
                 </div>

@@ -35,6 +35,59 @@ function loadResults() {
     filterResults();
 }
 
+// クラウド（Google Sheets）からデータを取得
+async function fetchCloudData() {
+    const fetchBtn = document.querySelector('.fetch-btn');
+    const originalText = fetchBtn.textContent;
+
+    fetchBtn.textContent = '取得中...';
+    fetchBtn.classList.add('loading');
+
+    try {
+        const cloudData = await fetchFromGoogleSheets();
+
+        if (cloudData.length === 0) {
+            alert('クラウドにデータがありません。');
+            return;
+        }
+
+        // クラウドデータをローカルストレージに保存（マージまたは上書き）
+        const localData = Storage.load('testResults') || [];
+
+        // 重複チェック（日時と受験者名で判定）
+        const existingKeys = new Set(localData.map(r =>
+            `${r.examineeName}_${r.date}_${r.type}`
+        ));
+
+        let newCount = 0;
+        cloudData.forEach(item => {
+            const key = `${item.examineeName}_${item.date}_${item.type}`;
+            if (!existingKeys.has(key)) {
+                localData.push(item);
+                newCount++;
+            }
+        });
+
+        // 日付順にソート
+        localData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // ローカルストレージに保存
+        Storage.save('testResults', localData);
+
+        // 画面を更新
+        loadResults();
+
+        alert(`クラウドから ${cloudData.length} 件のデータを取得しました。\n新規追加: ${newCount} 件`);
+
+    } catch (error) {
+        console.error('クラウドデータ取得エラー:', error);
+        alert('データの取得に失敗しました。\n' + error.message);
+    } finally {
+        fetchBtn.textContent = originalText;
+        fetchBtn.classList.remove('loading');
+    }
+}
+
 // 統計情報を更新
 function updateStatsInfo() {
     const stats = getMensaStatistics();

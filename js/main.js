@@ -1,7 +1,7 @@
 // メインJavaScript - 共通機能
 
 // Google Sheets API URL
-const GOOGLE_SHEETS_API = 'https://script.google.com/macros/s/AKfycbzcKzdz9eGmR6KVhBvRxHPs4hY5qCQD4MuLI1-XXq63F-QnP-fI3J_RYjGclc1f22V7/exec';
+const GOOGLE_SHEETS_API = 'https://script.google.com/macros/s/AKfycbwA5fxK8GAPzSZrj8BAMs8QQFiBTBza5diBQzg-EydB5_lbixHs7HMvmh0xXzSe9Om1/exec';
 
 // Google Sheetsにデータを送信
 function sendToGoogleSheets(data) {
@@ -15,6 +15,32 @@ function sendToGoogleSheets(data) {
     }).catch(function(error) {
         console.log('送信エラー:', error);
     });
+}
+
+// Google Sheetsからデータを取得
+function fetchFromGoogleSheets() {
+    return fetch(GOOGLE_SHEETS_API)
+        .then(response => response.json())
+        .then(data => {
+            // データを変換してローカルストレージと同じ形式にする
+            return data.map(row => ({
+                type: row.type ? row.type.toLowerCase() : 'unknown',
+                examineeName: row.examineeName || '未登録',
+                examineeBirth: row.examineeBirth || '未登録',
+                score: parseInt(row.score) || 0,
+                total: parseInt(row.total) || 0,
+                iq: parseInt(row.iq) || null,
+                date: row.date,
+                time: parseInt(row.time) || 0,
+                themeTitle: row.theme || '',
+                text: row.essayText || '',
+                charCount: row.essayText ? row.essayText.length : 0
+            }));
+        })
+        .catch(error => {
+            console.error('データ取得エラー:', error);
+            return [];
+        });
 }
 
 // ローカルストレージ管理
