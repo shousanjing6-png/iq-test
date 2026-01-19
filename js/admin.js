@@ -30,8 +30,43 @@ function loadResults() {
     allResults = Storage.load('testResults') || [];
     buildExamineesData();
     updateStats();
+    updateStatsInfo();
     renderExamineeView();
     filterResults();
+}
+
+// 統計情報を更新
+function updateStatsInfo() {
+    const stats = getMensaStatistics();
+    const statsInfo = document.getElementById('statsInfo');
+
+    if (stats.count >= 2) {
+        statsInfo.style.display = 'flex';
+        document.getElementById('statAvgPercent').textContent = stats.avgPercentage + '%';
+        document.getElementById('statStdDev').textContent = stats.stdDev + '%';
+        document.getElementById('statAvgIQ').textContent = stats.avgIQ;
+        document.getElementById('statCount').textContent = stats.count + '件';
+    } else {
+        statsInfo.style.display = 'none';
+    }
+}
+
+// IQ再計算
+function recalculateIQ() {
+    const mensaCount = allResults.filter(r => r.type === 'mensa').length;
+
+    if (mensaCount < 2) {
+        alert('IQを再計算するには、最低2件のMensaテスト結果が必要です。');
+        return;
+    }
+
+    if (confirm('すべてのMensaテスト結果のIQを、現在の統計データに基づいて再計算しますか？\n\n※ 受験者数が増えると、より正確なIQが算出されます。')) {
+        const result = recalculateAllIQ();
+        alert(result.message + '\n\n現在の統計:\n・平均正答率: ' + result.stats.avgPercentage + '%\n・標準偏差: ' + result.stats.stdDev + '%');
+
+        // データを再読み込み
+        loadResults();
+    }
 }
 
 // 受験者ごとにデータを集約

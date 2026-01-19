@@ -91,26 +91,132 @@ function evaluateScore(score, total) {
     return { grade: 'E', message: '復習が必要です。' };
 }
 
-// IQスコア計算（改良版）
-// 30問中の正答数からIQを推定
-// 平均正答率50%（15問）= IQ100、標準偏差を問題数の15%（約4.5問）と仮定
-function calculateIQ(score, total, avgScore) {
+// IQスコア計算（動的統計版）
+// 実際の受験者データから平均・標準偏差を計算してIQを算出
+function calculateIQ(score, total) {
+    // 過去のMensaテスト結果を取得
+    const allResults = Storage.load('testResults') || [];
+    const mensaResults = allResults.filter(r => r.type === 'mensa');
+
     // 正答率を計算
     const percentage = score / total;
 
-    // 正答率に基づくIQ計算
-    // 50% = IQ100を基準に、正答率の変動をIQに変換
-    // 標準偏差15%（正答率）= IQ15点の変動
-    const avgPercentage = avgScore / total;
-    const stdDev = 0.15; // 正答率の標準偏差を15%と仮定
+    let avgPercentage, stdDev;
 
+    if (mensaResults.length >= 10) {
+        // 十分なデータがある場合：実際の統計を使用
+        const percentages = mensaResults.map(r => r.score / r.total);
+
+        // 平均を計算
+        avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
+
+        // 標準偏差を計算
+        const variance = percentages.reduce((sum, p) => sum + Math.pow(p - avgPercentage, 2), 0) / percentages.length;
+        stdDev = Math.sqrt(variance);
+
+        // 標準偏差が小さすぎる場合は最小値を設定（0除算防止）
+        if (stdDev < 0.05) {
+            stdDev = 0.05;
+        }
+    } else {
+        // データが不十分な場合：デフォルト値を使用
+        // 平均50%、標準偏差15%（一般的なIQテストの想定）
+        avgPercentage = 0.5;
+        stdDev = 0.15;
+    }
+
+    // zスコアを計算（偏差値の元となる標準化得点）
     const zScore = (percentage - avgPercentage) / stdDev;
+
+    // IQに変換（平均100、標準偏差15）
     let iq = Math.round(100 + zScore * 15);
 
     // 現実的な範囲に制限（70〜160）
     iq = Math.max(70, Math.min(160, iq));
 
     return iq;
+}
+
+// 統計情報を取得する関数（管理画面用）
+function getMensaStatistics() {
+    const allResults = Storage.load('testResults') || [];
+    const mensaResults = allResults.filter(r => r.type === 'mensa');
+
+    if (mensaResults.length === 0) {
+        return {
+            count: 0,
+            avgPercentage: null,
+            stdDev: null,
+            minScore: null,
+            maxScore: null,
+            avgIQ: null
+        };
+    }
+
+    const percentages = mensaResults.map(r => r.score / r.total);
+    const iqs = mensaResults.map(r => r.iq);
+
+    const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
+    const variance = percentages.reduce((sum, p) => sum + Math.pow(p - avgPercentage, 2), 0) / percentages.length;
+    const stdDev = Math.sqrt(variance);
+
+    return {
+        count: mensaResults.length,
+        avgPercentage: Math.round(avgPercentage * 100),
+        stdDev: Math.round(stdDev * 100),
+        minScore: Math.min(...percentages.map(p => Math.round(p * 100))),
+        maxScore: Math.max(...percentages.map(p => Math.round(p * 100))),
+        avgIQ: Math.round(iqs.reduce((sum, iq) => sum + iq, 0) / iqs.length)
+    };
+}
+
+// すべてのMensa結果のIQを再計算する関数
+function recalculateAllIQ() {
+    const allResults = Storage.load('testResults') || [];
+
+    // まず現在の統計を計算（全データを使用）
+    const mensaResults = allResults.filter(r => r.type === 'mensa');
+
+    if (mensaResults.length < 2) {
+        return { updated: 0, message: 'データが不足しています（最低2件必要）' };
+    }
+
+    const percentages = mensaResults.map(r => r.score / r.total);
+    const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
+    const variance = percentages.reduce((sum, p) => sum + Math.pow(p - avgPercentage, 2), 0) / percentages.length;
+    let stdDev = Math.sqrt(variance);
+
+    if (stdDev < 0.05) {
+        stdDev = 0.05;
+    }
+
+    // 全てのMensa結果のIQを再計算
+    let updatedCount = 0;
+    allResults.forEach(result => {
+        if (result.type === 'mensa') {
+            const percentage = result.score / result.total;
+            const zScore = (percentage - avgPercentage) / stdDev;
+            let newIQ = Math.round(100 + zScore * 15);
+            newIQ = Math.max(70, Math.min(160, newIQ));
+
+            if (result.iq !== newIQ) {
+                result.iq = newIQ;
+                updatedCount++;
+            }
+        }
+    });
+
+    // 更新したデータを保存
+    Storage.save('testResults', allResults);
+
+    return {
+        updated: updatedCount,
+        message: `${updatedCount}件のIQを再計算しました`,
+        stats: {
+            avgPercentage: Math.round(avgPercentage * 100),
+            stdDev: Math.round(stdDev * 100)
+        }
+    };
 }
 
 // シャッフル機能

@@ -318,6 +318,45 @@
             background: #c0392b;
         }
 
+        .recalc-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .recalc-btn:hover {
+            background: #2980b9;
+        }
+
+        .stats-info {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stats-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-info-label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .stats-info-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
         /* 受験者カード */
         .examinee-grid {
             display: grid;
@@ -623,7 +662,10 @@
         <div class="admin-container">
             <div class="admin-header">
                 <h2>管理者画面</h2>
-                <button class="clear-btn" onclick="clearAllData()">全データ削除</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="recalc-btn" onclick="recalculateIQ()">IQ再計算</button>
+                    <button class="clear-btn" onclick="clearAllData()">全データ削除</button>
+                </div>
             </div>
 
             <!-- 統計サマリー -->
@@ -643,6 +685,26 @@
                 <div class="stat-card essay">
                     <div class="stat-number" id="essayCount">0</div>
                     <div class="stat-label">小論文テスト</div>
+                </div>
+            </div>
+
+            <!-- 統計情報 -->
+            <div class="stats-info" id="statsInfo" style="display:none;">
+                <div class="stats-info-item">
+                    <span class="stats-info-label">平均正答率:</span>
+                    <span class="stats-info-value" id="statAvgPercent">-</span>
+                </div>
+                <div class="stats-info-item">
+                    <span class="stats-info-label">標準偏差:</span>
+                    <span class="stats-info-value" id="statStdDev">-</span>
+                </div>
+                <div class="stats-info-item">
+                    <span class="stats-info-label">平均IQ:</span>
+                    <span class="stats-info-value" id="statAvgIQ">-</span>
+                </div>
+                <div class="stats-info-item">
+                    <span class="stats-info-label">データ数:</span>
+                    <span class="stats-info-value" id="statCount">-</span>
                 </div>
             </div>
 

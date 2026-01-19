@@ -690,8 +690,7 @@ function submitTest() {
     });
 
     const total = mensaQuestions.length;
-    const avgScore = total * 0.5; // 平均正答率50% = IQ100
-    const iq = calculateIQ(score, total, avgScore);
+    const iq = calculateIQ(score, total);
 
     // 受験者情報を取得
     const examinee = Storage.load('currentExaminee') || {};
