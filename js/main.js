@@ -219,6 +219,207 @@ function recalculateAllIQ() {
     };
 }
 
+// ==========================================
+// 問題別統計管理
+// ==========================================
+
+// 問題別の統計を記録
+function recordQuestionStats(testType, questionIndex, isCorrect) {
+    const stats = Storage.load('questionStats') || {};
+    const key = `${testType}_${questionIndex}`;
+
+    if (!stats[key]) {
+        stats[key] = {
+            testType: testType,
+            questionIndex: questionIndex,
+            totalAttempts: 0,
+            correctCount: 0,
+            lastUpdated: null
+        };
+    }
+
+    stats[key].totalAttempts++;
+    if (isCorrect) {
+        stats[key].correctCount++;
+    }
+    stats[key].lastUpdated = new Date().toISOString();
+
+    Storage.save('questionStats', stats);
+}
+
+// 複数の問題統計を一括記録
+function recordAllQuestionStats(testType, answers, correctAnswers) {
+    answers.forEach((answer, index) => {
+        const isCorrect = answer === correctAnswers[index];
+        recordQuestionStats(testType, index, isCorrect);
+    });
+}
+
+// 問題別の統計を取得
+function getQuestionStats(testType) {
+    const stats = Storage.load('questionStats') || {};
+    const result = [];
+
+    for (const key in stats) {
+        if (stats[key].testType === testType) {
+            const s = stats[key];
+            result.push({
+                index: s.questionIndex,
+                totalAttempts: s.totalAttempts,
+                correctCount: s.correctCount,
+                correctRate: s.totalAttempts > 0 ? Math.round((s.correctCount / s.totalAttempts) * 100) : 0,
+                lastUpdated: s.lastUpdated
+            });
+        }
+    }
+
+    // インデックス順にソート
+    result.sort((a, b) => a.index - b.index);
+    return result;
+}
+
+// 問題の難易度を分析
+function analyzeQuestionDifficulty(testType) {
+    const stats = getQuestionStats(testType);
+
+    if (stats.length === 0) {
+        return { easy: [], medium: [], hard: [], noData: [] };
+    }
+
+    const easy = [];    // 正答率80%以上（簡単すぎる）
+    const medium = [];  // 正答率30-80%（適切）
+    const hard = [];    // 正答率30%未満（難しすぎる）
+    const noData = [];  // データ不足（5回未満）
+
+    stats.forEach(s => {
+        if (s.totalAttempts < 5) {
+            noData.push(s);
+        } else if (s.correctRate >= 80) {
+            easy.push(s);
+        } else if (s.correctRate >= 30) {
+            medium.push(s);
+        } else {
+            hard.push(s);
+        }
+    });
+
+    return { easy, medium, hard, noData };
+}
+
+// 問題の出題順を正答率に基づいて調整（易→難）
+function getAdjustedQuestionOrder(testType, totalQuestions) {
+    const stats = getQuestionStats(testType);
+
+    // 統計がない問題はデフォルトの正答率50%として扱う
+    const questionRates = [];
+    for (let i = 0; i < totalQuestions; i++) {
+        const stat = stats.find(s => s.index === i);
+        questionRates.push({
+            index: i,
+            correctRate: stat ? stat.correctRate : 50,
+            hasData: !!stat && stat.totalAttempts >= 5
+        });
+    }
+
+    // 正答率が高い順（易しい順）にソート
+    questionRates.sort((a, b) => b.correctRate - a.correctRate);
+
+    return questionRates.map(q => q.index);
+}
+
+// 問題の配点を正答率に基づいて調整
+function getQuestionWeights(testType, totalQuestions) {
+    const stats = getQuestionStats(testType);
+
+    const weights = [];
+    for (let i = 0; i < totalQuestions; i++) {
+        const stat = stats.find(s => s.index === i);
+
+        // 基本配点は1点
+        // 正答率が低い問題ほど配点が高い
+        let weight = 1;
+        if (stat && stat.totalAttempts >= 5) {
+            if (stat.correctRate < 20) {
+                weight = 2.0;  // 非常に難しい
+            } else if (stat.correctRate < 40) {
+                weight = 1.5;  // 難しい
+            } else if (stat.correctRate >= 80) {
+                weight = 0.8;  // 簡単
+            }
+        }
+        weights.push(weight);
+    }
+
+    return weights;
+}
+
+// ==========================================
+// 問題管理機能
+// ==========================================
+
+// 問題の有効/無効状態を取得
+function getDisabledQuestions(testType) {
+    const disabled = Storage.load('disabledQuestions') || {};
+    return disabled[testType] || [];
+}
+
+// 問題を無効化
+function disableQuestion(testType, questionIndex) {
+    const disabled = Storage.load('disabledQuestions') || {};
+    if (!disabled[testType]) {
+        disabled[testType] = [];
+    }
+    if (!disabled[testType].includes(questionIndex)) {
+        disabled[testType].push(questionIndex);
+    }
+    Storage.save('disabledQuestions', disabled);
+}
+
+// 問題を有効化
+function enableQuestion(testType, questionIndex) {
+    const disabled = Storage.load('disabledQuestions') || {};
+    if (disabled[testType]) {
+        disabled[testType] = disabled[testType].filter(i => i !== questionIndex);
+    }
+    Storage.save('disabledQuestions', disabled);
+}
+
+// 問題が無効かどうかを確認
+function isQuestionDisabled(testType, questionIndex) {
+    const disabled = getDisabledQuestions(testType);
+    return disabled.includes(questionIndex);
+}
+
+// 有効な問題のインデックスを取得
+function getEnabledQuestionIndices(testType, totalQuestions) {
+    const disabled = getDisabledQuestions(testType);
+    const enabled = [];
+    for (let i = 0; i < totalQuestions; i++) {
+        if (!disabled.includes(i)) {
+            enabled.push(i);
+        }
+    }
+    return enabled;
+}
+
+// 問題統計をリセット
+function resetQuestionStats(testType, questionIndex) {
+    const stats = Storage.load('questionStats') || {};
+    const key = `${testType}_${questionIndex}`;
+    if (stats[key]) {
+        delete stats[key];
+        Storage.save('questionStats', stats);
+    }
+}
+
+// 全ての問題統計をリセット
+function resetAllQuestionStats(testType) {
+    const stats = Storage.load('questionStats') || {};
+    const keysToDelete = Object.keys(stats).filter(key => key.startsWith(testType + '_'));
+    keysToDelete.forEach(key => delete stats[key]);
+    Storage.save('questionStats', stats);
+}
+
 // シャッフル機能
 function shuffleArray(array) {
     const shuffled = [...array];

@@ -436,6 +436,8 @@ let currentQuestion = 0;
 let answers = [];
 let timer;
 let testStartTime;
+let questionOrder = []; // 問題の出題順序
+let originalQuestions = []; // 元の問題配列
 
 // 初期化
 document.addEventListener('DOMContentLoaded', function() {
@@ -444,6 +446,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initTest() {
     testStartTime = Date.now();
+
+    // 元の問題を保存
+    originalQuestions = [...mensaQuestions];
+
+    // 有効な問題のインデックスのみを取得
+    const enabledIndices = getEnabledQuestionIndices('mensa', originalQuestions.length);
+
+    // 有効な問題がなければ全問題を使用
+    if (enabledIndices.length === 0) {
+        questionOrder = Array.from({ length: originalQuestions.length }, (_, i) => i);
+    } else {
+        // 問題順序を取得（正答率に基づいて易→難の順に調整）
+        const adjustedOrder = getAdjustedQuestionOrder('mensa', originalQuestions.length);
+        // 有効な問題のみをフィルタリングし、順序を保持
+        questionOrder = adjustedOrder.filter(i => enabledIndices.includes(i));
+    }
+
+    // 問題を並び替え
+    const reorderedQuestions = questionOrder.map(i => originalQuestions[i]);
+
+    // mensaQuestionsを更新（表示用）
+    mensaQuestions.length = 0;
+    reorderedQuestions.forEach(q => mensaQuestions.push(q));
+
     answers = new Array(mensaQuestions.length).fill(null);
 
     document.getElementById('totalQuestions').textContent = mensaQuestions.length;
@@ -683,10 +709,20 @@ function submitTest() {
     const elapsedTime = Math.round((Date.now() - testStartTime) / 1000);
     let score = 0;
 
+    // 正答を配列として取得
+    const correctAnswers = mensaQuestions.map(q => q.answer);
+
     answers.forEach((answer, i) => {
         if (answer === mensaQuestions[i].answer) {
             score++;
         }
+    });
+
+    // 問題別統計を記録（元のインデックスを使用）
+    answers.forEach((answer, displayIndex) => {
+        const originalIndex = questionOrder[displayIndex];
+        const isCorrect = answer === mensaQuestions[displayIndex].answer;
+        recordQuestionStats('mensa', originalIndex, isCorrect);
     });
 
     const total = mensaQuestions.length;

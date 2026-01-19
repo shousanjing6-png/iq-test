@@ -116,20 +116,128 @@ function searchExaminees() {
 function switchView(view) {
     const examineeView = document.getElementById('examineeView');
     const resultView = document.getElementById('resultView');
+    const questionView = document.getElementById('questionView');
     const examineeBtn = document.getElementById('examineeViewBtn');
     const resultBtn = document.getElementById('resultViewBtn');
+    const questionBtn = document.getElementById('questionViewBtn');
+
+    // すべて非表示
+    examineeView.style.display = 'none';
+    resultView.style.display = 'none';
+    questionView.style.display = 'none';
+    examineeBtn.classList.remove('active');
+    resultBtn.classList.remove('active');
+    questionBtn.classList.remove('active');
 
     if (view === 'examinee') {
         examineeView.style.display = 'block';
-        resultView.style.display = 'none';
         examineeBtn.classList.add('active');
-        resultBtn.classList.remove('active');
-    } else {
-        examineeView.style.display = 'none';
+    } else if (view === 'result') {
         resultView.style.display = 'block';
-        examineeBtn.classList.remove('active');
         resultBtn.classList.add('active');
+    } else if (view === 'question') {
+        questionView.style.display = 'block';
+        questionBtn.classList.add('active');
+        renderQuestionAnalysis();
     }
+}
+
+// 問題分析を表示
+function renderQuestionAnalysis() {
+    const analysis = analyzeQuestionDifficulty('mensa');
+    const stats = getQuestionStats('mensa');
+
+    // サマリー更新
+    document.getElementById('easyCount').textContent = analysis.easy.length;
+    document.getElementById('mediumCount').textContent = analysis.medium.length;
+    document.getElementById('hardCount').textContent = analysis.hard.length;
+    document.getElementById('noDataCount').textContent = analysis.noData.length;
+
+    const questionList = document.getElementById('questionList');
+    const noData = document.getElementById('noQuestionData');
+
+    if (stats.length === 0) {
+        questionList.innerHTML = '';
+        noData.style.display = 'block';
+        return;
+    }
+
+    noData.style.display = 'none';
+
+    // 問題を正答率順にソート（低い順 = 難しい順）
+    const sortedStats = [...stats].sort((a, b) => a.correctRate - b.correctRate);
+
+    // 全問題数を取得（統計がない問題も含める）
+    const totalQuestions = 30; // Mensaテストの問題数
+    const allQuestions = [];
+
+    for (let i = 0; i < totalQuestions; i++) {
+        const stat = stats.find(s => s.index === i);
+        const isDisabled = isQuestionDisabled('mensa', i);
+
+        allQuestions.push({
+            index: i,
+            totalAttempts: stat ? stat.totalAttempts : 0,
+            correctRate: stat ? stat.correctRate : 0,
+            isDisabled: isDisabled
+        });
+    }
+
+    // 正答率順にソート（低い順 = 難しい順）
+    const sortedQuestions = [...allQuestions].sort((a, b) => a.correctRate - b.correctRate);
+
+    questionList.innerHTML = sortedQuestions.map(s => {
+        let difficulty, statusText;
+        if (s.isDisabled) {
+            difficulty = 'disabled';
+            statusText = '無効';
+        } else if (s.totalAttempts < 5) {
+            difficulty = 'nodata';
+            statusText = 'データ不足';
+        } else if (s.correctRate >= 80) {
+            difficulty = 'easy';
+            statusText = '簡単すぎる';
+        } else if (s.correctRate >= 30) {
+            difficulty = 'medium';
+            statusText = '適切';
+        } else {
+            difficulty = 'hard';
+            statusText = '難しすぎる';
+        }
+
+        const toggleBtn = s.isDisabled
+            ? `<button class="toggle-btn enable" onclick="toggleQuestion(${s.index}, true)">有効化</button>`
+            : `<button class="toggle-btn disable" onclick="toggleQuestion(${s.index}, false)">無効化</button>`;
+
+        return `
+            <div class="question-item ${difficulty}">
+                <div class="question-number">問題 ${s.index + 1}</div>
+                <div class="question-stats">
+                    <div class="question-rate">
+                        <div class="rate-bar">
+                            <div class="rate-fill ${difficulty}" style="width: ${s.correctRate}%"></div>
+                        </div>
+                        <span class="rate-value">${s.correctRate}%</span>
+                    </div>
+                    <div class="question-attempts">${s.totalAttempts}回受験</div>
+                </div>
+                <span class="question-status ${difficulty}">${statusText}</span>
+                ${toggleBtn}
+            </div>
+        `;
+    }).join('');
+}
+
+// 問題の有効/無効を切り替え
+function toggleQuestion(index, enable) {
+    if (enable) {
+        enableQuestion('mensa', index);
+    } else {
+        if (confirm(`問題 ${index + 1} を無効化しますか？\n無効化された問題はテストに出題されなくなります。`)) {
+            disableQuestion('mensa', index);
+        }
+    }
+    renderQuestionAnalysis();
 }
 
 // 受験者一覧を表示
