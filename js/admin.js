@@ -2,6 +2,7 @@
 
 const ADMIN_PASSWORD = 'viavia';
 let allResults = [];
+let examineesData = {}; // 受験者ごとのデータを保持
 
 // パスワードチェック
 function checkPassword() {
@@ -27,9 +28,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function loadResults() {
     allResults = Storage.load('testResults') || [];
+    buildExamineesData();
     updateStats();
     renderExamineeView();
     filterResults();
+}
+
+// 受験者ごとにデータを集約
+function buildExamineesData() {
+    examineesData = {};
+
+    allResults.forEach(result => {
+        const key = result.examineeName + '_' + result.examineeBirth;
+        if (!examineesData[key]) {
+            examineesData[key] = {
+                name: result.examineeName,
+                birth: result.examineeBirth,
+                allResults: [],
+                mensa: [],
+                knowledge: [],
+                essay: []
+            };
+        }
+
+        examineesData[key].allResults.push(result);
+
+        if (result.type === 'mensa') {
+            examineesData[key].mensa.push(result);
+        } else if (result.type === 'knowledge') {
+            examineesData[key].knowledge.push(result);
+        } else if (result.type === 'essay') {
+            examineesData[key].essay.push(result);
+        }
+    });
+
+    // 各結果を日付順にソート（新しい順）
+    for (const key in examineesData) {
+        examineesData[key].allResults.sort((a, b) => new Date(b.date) - new Date(a.date));
+        examineesData[key].mensa.sort((a, b) => new Date(b.date) - new Date(a.date));
+        examineesData[key].knowledge.sort((a, b) => new Date(b.date) - new Date(a.date));
+        examineesData[key].essay.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+}
+
+// 検索機能
+function searchExaminees() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    renderExamineeView(searchTerm);
 }
 
 // ビュー切り替え
@@ -53,52 +98,43 @@ function switchView(view) {
 }
 
 // 受験者一覧を表示
-function renderExamineeView() {
+function renderExamineeView(searchTerm = '') {
     const grid = document.getElementById('examineeGrid');
     const noData = document.getElementById('noExamineeData');
 
-    // 受験者ごとに結果を集約
-    const examinees = {};
+    let examineeList = Object.entries(examineesData)
+        .filter(([key, e]) => e.name && e.name !== '未登録')
+        .map(([key, e]) => ({ ...e, key }));
 
-    allResults.forEach(result => {
-        const key = result.examineeName + '_' + result.examineeBirth;
-        if (!examinees[key]) {
-            examinees[key] = {
-                name: result.examineeName,
-                birth: result.examineeBirth,
-                mensa: null,
-                knowledge: null,
-                essay: null
-            };
-        }
-
-        // 最新の結果を保持
-        if (result.type === 'mensa') {
-            if (!examinees[key].mensa || new Date(result.date) > new Date(examinees[key].mensa.date)) {
-                examinees[key].mensa = result;
-            }
-        } else if (result.type === 'knowledge') {
-            if (!examinees[key].knowledge || new Date(result.date) > new Date(examinees[key].knowledge.date)) {
-                examinees[key].knowledge = result;
-            }
-        } else if (result.type === 'essay') {
-            if (!examinees[key].essay || new Date(result.date) > new Date(examinees[key].essay.date)) {
-                examinees[key].essay = result;
-            }
-        }
-    });
-
-    const examineeList = Object.values(examinees).filter(e => e.name && e.name !== '未登録');
+    // 検索フィルタ
+    if (searchTerm) {
+        examineeList = examineeList.filter(e =>
+            e.name.toLowerCase().includes(searchTerm)
+        );
+    }
 
     if (examineeList.length === 0) {
         grid.innerHTML = '';
         noData.style.display = 'block';
+        noData.textContent = searchTerm ? '検索結果がありません' : 'まだ受験者がいません';
         return;
     }
 
     noData.style.display = 'none';
 
-    grid.innerHTML = examineeList.map(examinee => renderExamineeCard(examinee)).join('');
+    grid.innerHTML = examineeList.map(examinee => {
+        // 最新の結果を取得
+        const latestMensa = examinee.mensa[0] || null;
+        const latestKnowledge = examinee.knowledge[0] || null;
+        const latestEssay = examinee.essay[0] || null;
+
+        return renderExamineeCard({
+            ...examinee,
+            mensa: latestMensa,
+            knowledge: latestKnowledge,
+            essay: latestEssay
+        });
+    }).join('');
 }
 
 // 受験者カードを生成
@@ -211,8 +247,19 @@ function renderExamineeCard(examinee) {
         dateInfo = `<div class="test-date">${dates.join(' | ')}</div>`;
     }
 
+    // 受験回数
+    const testCounts = [];
+    const mensaCount = examineesData[examinee.name + '_' + examinee.birth]?.mensa.length || 0;
+    const knowledgeCount = examineesData[examinee.name + '_' + examinee.birth]?.knowledge.length || 0;
+    const essayCount = examineesData[examinee.name + '_' + examinee.birth]?.essay.length || 0;
+    const totalCount = mensaCount + knowledgeCount + essayCount;
+
+    const countInfo = `<div class="test-date">受験回数: ${totalCount}回（Mensa: ${mensaCount} / 教養: ${knowledgeCount} / 小論文: ${essayCount}）</div>`;
+
+    const examKey = examinee.name + '_' + examinee.birth;
+
     return `
-        <div class="examinee-card">
+        <div class="examinee-card" onclick="showExamineeDetail('${examKey.replace(/'/g, "\\'")}')">
             <div class="examinee-header">
                 <div>
                     <div class="examinee-name">${examinee.name}</div>
@@ -223,6 +270,7 @@ function renderExamineeCard(examinee) {
             ${strengthHtml}
             ${essayHtml}
             ${dateInfo}
+            ${countInfo}
         </div>
     `;
 }
@@ -689,3 +737,124 @@ document.getElementById('detailModal').addEventListener('click', function(e) {
         closeModal();
     }
 });
+
+document.getElementById('examineeModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeExamineeModal();
+    }
+});
+
+// 受験者詳細モーダルを表示
+function showExamineeDetail(key) {
+    const examinee = examineesData[key];
+    if (!examinee) return;
+
+    const modal = document.getElementById('examineeModal');
+    const title = document.getElementById('examineeModalTitle');
+    const body = document.getElementById('examineeModalBody');
+
+    title.textContent = examinee.name + ' の全テスト履歴';
+
+    // 統計情報
+    const latestMensa = examinee.mensa[0];
+    const latestIQ = latestMensa ? latestMensa.iq : '-';
+
+    // 最高IQ
+    let maxIQ = '-';
+    if (examinee.mensa.length > 0) {
+        maxIQ = Math.max(...examinee.mensa.map(r => r.iq));
+    }
+
+    // 一般教養の平均正答率
+    let avgKnowledge = '-';
+    if (examinee.knowledge.length > 0) {
+        const total = examinee.knowledge.reduce((sum, r) => sum + (r.score / r.total * 100), 0);
+        avgKnowledge = Math.round(total / examinee.knowledge.length) + '%';
+    }
+
+    body.innerHTML = `
+        <div class="examinee-detail-header">
+            <div>
+                <div class="examinee-detail-name">${examinee.name}</div>
+                <div class="examinee-detail-birth">生年月日: ${examinee.birth}</div>
+            </div>
+            <div class="examinee-stats">
+                <div class="examinee-stat-item">
+                    <div class="examinee-stat-value">${latestIQ}</div>
+                    <div class="examinee-stat-label">最新IQ</div>
+                </div>
+                <div class="examinee-stat-item">
+                    <div class="examinee-stat-value">${maxIQ}</div>
+                    <div class="examinee-stat-label">最高IQ</div>
+                </div>
+                <div class="examinee-stat-item">
+                    <div class="examinee-stat-value">${avgKnowledge}</div>
+                    <div class="examinee-stat-label">教養平均</div>
+                </div>
+                <div class="examinee-stat-item">
+                    <div class="examinee-stat-value">${examinee.allResults.length}</div>
+                    <div class="examinee-stat-label">総受験数</div>
+                </div>
+            </div>
+        </div>
+
+        ${renderTestSection('Mensa テスト', 'mensa', examinee.mensa)}
+        ${renderTestSection('一般教養テスト', 'knowledge', examinee.knowledge)}
+        ${renderTestSection('小論文テスト', 'essay', examinee.essay)}
+    `;
+
+    modal.classList.add('active');
+}
+
+// テストセクションをレンダリング
+function renderTestSection(title, type, results) {
+    if (results.length === 0) {
+        return `
+            <div class="test-section">
+                <h4>${title} <span class="badge ${type}">未受験</span></h4>
+                <p class="no-test">このテストはまだ受験していません</p>
+            </div>
+        `;
+    }
+
+    const historyItems = results.map((result, index) => {
+        const date = new Date(result.date);
+        const dateStr = date.toLocaleDateString('ja-JP') + ' ' + date.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
+
+        let scoreHtml = '';
+        if (type === 'mensa') {
+            scoreHtml = `IQ: ${result.iq} (${result.score}/${result.total})`;
+        } else if (type === 'knowledge') {
+            const percentage = Math.round((result.score / result.total) * 100);
+            scoreHtml = `${result.score}/${result.total} (${percentage}%)`;
+        } else if (type === 'essay') {
+            scoreHtml = `${result.charCount}字`;
+        }
+
+        const originalIndex = allResults.indexOf(result);
+
+        return `
+            <div class="history-item" onclick="event.stopPropagation(); showDetail(${originalIndex})">
+                <div class="history-info">
+                    <div class="history-type">${index === 0 ? '【最新】' : ''}${type === 'essay' && result.themeTitle ? result.themeTitle : ''}</div>
+                    <div class="history-date">${dateStr} | 所要時間: ${formatTime(result.time)}</div>
+                </div>
+                <div class="history-score">${scoreHtml}</div>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="test-section">
+            <h4>${title} <span class="badge ${type}">${results.length}回受験</span></h4>
+            <div class="history-list">
+                ${historyItems}
+            </div>
+        </div>
+    `;
+}
+
+// 受験者詳細モーダルを閉じる
+function closeExamineeModal() {
+    document.getElementById('examineeModal').classList.remove('active');
+}

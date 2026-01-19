@@ -457,6 +457,125 @@
             margin-top: 10px;
         }
 
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .examinee-card {
+            cursor: pointer;
+        }
+
+        .history-list {
+            margin-top: 20px;
+        }
+
+        .history-item {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:hover {
+            background: #eef0ff;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-type {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .history-date {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .history-score {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .examinee-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .examinee-detail-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .examinee-detail-birth {
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .examinee-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .examinee-stat-item {
+            text-align: center;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .examinee-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .examinee-stat-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .test-section {
+            margin-top: 25px;
+        }
+
+        .test-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .test-section h4 .badge {
+            margin-left: 10px;
+        }
+
         .view-toggle {
             display: flex;
             gap: 10px;
@@ -527,6 +646,11 @@
                 </div>
             </div>
 
+            <!-- 検索バー -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="受験者名で検索..." oninput="searchExaminees()">
+            </div>
+
             <!-- ビュー切り替え -->
             <div class="view-toggle">
                 <button class="view-btn active" id="examineeViewBtn" onclick="switchView('examinee')">受験者一覧</button>
@@ -593,6 +717,19 @@
             </div>
             <div id="modalBody">
                 <!-- 詳細内容がここに表示される -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 受験者詳細モーダル -->
+    <div class="modal" id="examineeModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="examineeModalTitle">受験者詳細</h3>
+                <button class="close-btn" onclick="closeExamineeModal()">&times;</button>
+            </div>
+            <div id="examineeModalBody">
+                <!-- 受験者詳細がここに表示される -->
             </div>
         </div>
     </div>
