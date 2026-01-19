@@ -2,7 +2,7 @@
 
 // 問題データ
 const mensaQuestions = [
-    // 図形パターン認識問題（10問）- 高難度
+    // 図形パターン認識問題（5問）- 高難度
     {
         type: 'pattern',
         question: '複数の規則性を見つけ、?に入る図形を選んでください。',
@@ -71,28 +71,6 @@ const mensaQuestions = [
     },
     {
         type: 'pattern',
-        question: '図形の数と種類の変化パターンを見つけてください。',
-        pattern: [
-            { shapes: ['circle'], color: '#3498db' },
-            { shapes: ['circle', 'square'], color: '#3498db' },
-            { shapes: ['circle', 'square', 'triangle'], color: '#3498db' },
-            { shapes: ['square'], color: '#e74c3c' },
-            { shapes: ['square', 'triangle'], color: '#e74c3c' },
-            { shapes: ['square', 'triangle', 'circle'], color: '#e74c3c' },
-            { shapes: ['triangle'], color: '#2ecc71' },
-            { shapes: ['triangle', 'circle'], color: '#2ecc71' },
-            null
-        ],
-        options: [
-            { shapes: ['triangle', 'circle', 'square'], color: '#2ecc71' },
-            { shapes: ['triangle', 'square', 'circle'], color: '#2ecc71' },
-            { shapes: ['circle', 'triangle', 'square'], color: '#2ecc71' },
-            { shapes: ['triangle', 'circle'], color: '#2ecc71' }
-        ],
-        answer: 0
-    },
-    {
-        type: 'pattern',
         question: '対角線上の規則性も考慮してください。',
         pattern: [
             { shape: 'hexagon', color: '#9b59b6', size: 'large' },
@@ -110,94 +88,6 @@ const mensaQuestions = [
             { shape: 'pentagon', color: '#3498db', size: 'small' },
             { shape: 'hexagon', color: '#9b59b6', size: 'small' },
             { shape: 'diamond', color: '#9b59b6', size: 'small' }
-        ],
-        answer: 0
-    },
-    {
-        type: 'pattern',
-        question: '塗りつぶしパターンと形状の両方の規則を見つけてください。',
-        pattern: [
-            { shape: 'circle', color: '#3498db', filled: true, size: 'small' },
-            { shape: 'circle', color: '#3498db', filled: false, size: 'medium' },
-            { shape: 'circle', color: '#3498db', filled: true, size: 'large' },
-            { shape: 'square', color: '#e74c3c', filled: false, size: 'small' },
-            { shape: 'square', color: '#e74c3c', filled: true, size: 'medium' },
-            { shape: 'square', color: '#e74c3c', filled: false, size: 'large' },
-            { shape: 'triangle', color: '#2ecc71', filled: true, size: 'small' },
-            { shape: 'triangle', color: '#2ecc71', filled: false, size: 'medium' },
-            null
-        ],
-        options: [
-            { shape: 'triangle', color: '#2ecc71', filled: true, size: 'large' },
-            { shape: 'triangle', color: '#2ecc71', filled: false, size: 'large' },
-            { shape: 'circle', color: '#2ecc71', filled: true, size: 'large' },
-            { shape: 'triangle', color: '#3498db', filled: true, size: 'large' }
-        ],
-        answer: 0
-    },
-    {
-        type: 'pattern',
-        question: '星の頂点数と色の複合規則を見つけてください。',
-        pattern: [
-            { shape: 'star', color: '#f1c40f', points: 4 },
-            { shape: 'star', color: '#e74c3c', points: 5 },
-            { shape: 'star', color: '#3498db', points: 6 },
-            { shape: 'star', color: '#e74c3c', points: 4 },
-            { shape: 'star', color: '#3498db', points: 5 },
-            { shape: 'star', color: '#f1c40f', points: 6 },
-            { shape: 'star', color: '#3498db', points: 4 },
-            { shape: 'star', color: '#f1c40f', points: 5 },
-            null
-        ],
-        options: [
-            { shape: 'star', color: '#e74c3c', points: 6 },
-            { shape: 'star', color: '#3498db', points: 6 },
-            { shape: 'star', color: '#f1c40f', points: 6 },
-            { shape: 'star', color: '#e74c3c', points: 5 }
-        ],
-        answer: 0
-    },
-    {
-        type: 'pattern',
-        question: '内部記号と外枠の組み合わせ規則を見つけてください。',
-        pattern: [
-            { shape: 'square', innerShape: 'dot', color: '#9b59b6', filled: false },
-            { shape: 'circle', innerShape: 'cross', color: '#1abc9c', filled: true },
-            { shape: 'triangle', innerShape: 'none', color: '#e67e22', filled: false },
-            { shape: 'circle', innerShape: 'none', color: '#9b59b6', filled: true },
-            { shape: 'triangle', innerShape: 'dot', color: '#1abc9c', filled: false },
-            { shape: 'square', innerShape: 'cross', color: '#e67e22', filled: true },
-            { shape: 'triangle', innerShape: 'cross', color: '#9b59b6', filled: true },
-            { shape: 'square', innerShape: 'none', color: '#1abc9c', filled: false },
-            null
-        ],
-        options: [
-            { shape: 'circle', innerShape: 'dot', color: '#e67e22', filled: true },
-            { shape: 'circle', innerShape: 'dot', color: '#e67e22', filled: false },
-            { shape: 'circle', innerShape: 'cross', color: '#e67e22', filled: true },
-            { shape: 'square', innerShape: 'dot', color: '#e67e22', filled: true }
-        ],
-        answer: 0
-    },
-    {
-        type: 'pattern',
-        question: '向きと形の両方が変化するパターンを解読してください。',
-        pattern: [
-            { shape: 'rectangle', color: '#3498db', orientation: 'horizontal' },
-            { shape: 'rectangle', color: '#3498db', orientation: 'vertical' },
-            { shape: 'arrow', color: '#3498db', direction: 'up' },
-            { shape: 'rectangle', color: '#e74c3c', orientation: 'vertical' },
-            { shape: 'arrow', color: '#e74c3c', direction: 'up' },
-            { shape: 'rectangle', color: '#e74c3c', orientation: 'horizontal' },
-            { shape: 'arrow', color: '#2ecc71', direction: 'up' },
-            { shape: 'rectangle', color: '#2ecc71', orientation: 'horizontal' },
-            null
-        ],
-        options: [
-            { shape: 'rectangle', color: '#2ecc71', orientation: 'vertical' },
-            { shape: 'arrow', color: '#2ecc71', direction: 'right' },
-            { shape: 'rectangle', color: '#2ecc71', orientation: 'horizontal' },
-            { shape: 'arrow', color: '#2ecc71', direction: 'down' }
         ],
         answer: 0
     },
@@ -221,6 +111,43 @@ const mensaQuestions = [
             { shape: 'triangle', color: '#9b59b6', size: 'large', innerShape: 'cross' },
             { shape: 'circle', color: '#9b59b6', size: 'large', innerShape: 'none' }
         ],
+        answer: 0
+    },
+
+    // 記憶・処理速度問題（5問）
+    {
+        type: 'memory',
+        question: '以下の数字の並びを覚えてください。逆順に並べ替えたものはどれ？',
+        sequence: '7 - 3 - 9 - 1 - 5',
+        options: ['5 - 1 - 9 - 3 - 7', '7 - 3 - 9 - 1 - 5', '5 - 9 - 1 - 3 - 7', '1 - 3 - 5 - 7 - 9'],
+        answer: 0
+    },
+    {
+        type: 'memory',
+        question: '以下の記号パターンを覚えてください：◆ ★ ● ▲ ■。3番目と5番目の記号を入れ替えると？',
+        sequence: '◆ ★ ● ▲ ■',
+        options: ['◆ ★ ■ ▲ ●', '◆ ● ★ ▲ ■', '■ ★ ● ▲ ◆', '◆ ★ ▲ ● ■'],
+        answer: 0
+    },
+    {
+        type: 'memory',
+        question: '「COMPUTER」の文字を逆から読み、さらにアルファベット順で3番目の文字は？',
+        sequence: 'COMPUTER → RETUPMOC → アルファベット順で3番目',
+        options: ['O', 'P', 'M', 'R'],
+        answer: 0
+    },
+    {
+        type: 'memory',
+        question: '数列「2, 5, 8, 11, 14」の各数字を2倍して、その合計は？',
+        sequence: '2, 5, 8, 11, 14 → 各数字を2倍 → 合計',
+        options: ['80', '40', '60', '100'],
+        answer: 0
+    },
+    {
+        type: 'memory',
+        question: '「月火水木金土日」から偶数番目の文字だけを取り出すと？',
+        sequence: '月火水木金土日（1,2,3,4,5,6,7番目）',
+        options: ['火木土', '月水金日', '火水木', '金土日'],
         answer: 0
     },
 
@@ -515,6 +442,8 @@ function showQuestion(index) {
         html += renderSequenceQuestion(question);
     } else if (question.type === 'logic') {
         html += renderLogicQuestion(question);
+    } else if (question.type === 'memory') {
+        html += renderMemoryQuestion(question);
     }
 
     container.innerHTML = html;
@@ -683,6 +612,27 @@ function renderLogicQuestion(question) {
         `;
     });
     html += '</div>';
+    return html;
+}
+
+function renderMemoryQuestion(question) {
+    let html = '<div class="memory-display" style="text-align:center;margin:30px 0;">';
+    html += '<div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:25px 40px;border-radius:15px;display:inline-block;font-size:1.5rem;font-weight:bold;letter-spacing:3px;margin-bottom:20px;">';
+    html += question.sequence;
+    html += '</div></div>';
+
+    html += '<div class="options">';
+    question.options.forEach((option, i) => {
+        const selected = answers[currentQuestion] === i ? 'selected' : '';
+        html += `
+            <label class="option ${selected}" onclick="selectAnswer(${i})">
+                <input type="radio" name="answer" ${selected ? 'checked' : ''}>
+                <span>${option}</span>
+            </label>
+        `;
+    });
+    html += '</div>';
+
     return html;
 }
 
