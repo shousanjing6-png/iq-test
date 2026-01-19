@@ -114,40 +114,40 @@ const mensaQuestions = [
         answer: 0
     },
 
-    // 記憶・処理速度問題（5問）
+    // 暗号解読問題（5問）
     {
-        type: 'memory',
-        question: '以下の数字の並びを覚えてください。逆順に並べ替えたものはどれ？',
-        sequence: '7 - 3 - 9 - 1 - 5',
-        options: ['5 - 1 - 9 - 3 - 7', '7 - 3 - 9 - 1 - 5', '5 - 9 - 1 - 3 - 7', '1 - 3 - 5 - 7 - 9'],
+        type: 'cipher',
+        question: '暗号の規則を見つけてください。「CAT → DBU」「DOG → EPH」のとき「PIG → ?」',
+        hint: 'アルファベットをずらす規則を見つけてください',
+        options: ['QJH', 'OHF', 'RKI', 'PHG'],
         answer: 0
     },
     {
-        type: 'memory',
-        question: '以下の記号パターンを覚えてください：◆ ★ ● ▲ ■。3番目と5番目の記号を入れ替えると？',
-        sequence: '◆ ★ ● ▲ ■',
-        options: ['◆ ★ ■ ▲ ●', '◆ ● ★ ▲ ■', '■ ★ ● ▲ ◆', '◆ ★ ▲ ● ■'],
+        type: 'cipher',
+        question: '暗号の規則を見つけてください。「HELLO → 85121215」「CAT → ?」',
+        hint: 'アルファベットの順番（A=1, B=2, C=3...）',
+        options: ['3120', '3119', '2120', '3121'],
         answer: 0
     },
     {
-        type: 'memory',
-        question: '「COMPUTER」の文字を逆から読み、さらにアルファベット順で3番目の文字は？',
-        sequence: 'COMPUTER → RETUPMOC → アルファベット順で3番目',
-        options: ['O', 'P', 'M', 'R'],
+        type: 'cipher',
+        question: '暗号の規則を見つけてください。「STAR → RATS」「LIVE → EVIL」のとき「DRAW → ?」',
+        hint: '文字の並びに注目',
+        options: ['WARD', 'DWAR', 'RAWD', 'WRAD'],
         answer: 0
     },
     {
-        type: 'memory',
-        question: '数列「2, 5, 8, 11, 14」の各数字を2倍して、その合計は？',
-        sequence: '2, 5, 8, 11, 14 → 各数字を2倍 → 合計',
-        options: ['80', '40', '60', '100'],
+        type: 'cipher',
+        question: '暗号の規則を見つけてください。「ACE → 135」「BAD → 214」のとき「CAGE → ?」',
+        hint: 'A=1, B=2, C=3... の規則',
+        options: ['3175', '3157', '3715', '3517'],
         answer: 0
     },
     {
-        type: 'memory',
-        question: '「月火水木金土日」から偶数番目の文字だけを取り出すと？',
-        sequence: '月火水木金土日（1,2,3,4,5,6,7番目）',
-        options: ['火木土', '月水金日', '火水木', '金土日'],
+        type: 'cipher',
+        question: '暗号の規則を見つけてください。「ABC → ZYX」「DEF → WVU」のとき「MNO → ?」',
+        hint: 'アルファベットの逆順との関係',
+        options: ['NML', 'ONM', 'LKJ', 'PON'],
         answer: 0
     },
 
@@ -442,8 +442,8 @@ function showQuestion(index) {
         html += renderSequenceQuestion(question);
     } else if (question.type === 'logic') {
         html += renderLogicQuestion(question);
-    } else if (question.type === 'memory') {
-        html += renderMemoryQuestion(question);
+    } else if (question.type === 'cipher') {
+        html += renderCipherQuestion(question);
     }
 
     container.innerHTML = html;
@@ -615,17 +615,21 @@ function renderLogicQuestion(question) {
     return html;
 }
 
-function renderMemoryQuestion(question) {
-    let html = '<div class="memory-display" style="text-align:center;margin:30px 0;">';
-    html += '<div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:25px 40px;border-radius:15px;display:inline-block;font-size:1.5rem;font-weight:bold;letter-spacing:3px;margin-bottom:20px;">';
-    html += question.sequence;
-    html += '</div></div>';
+function renderCipherQuestion(question) {
+    let html = '<div class="cipher-display" style="text-align:center;margin:30px 0;">';
+    html += '<div style="background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%);color:#2ecc71;padding:30px 50px;border-radius:15px;display:inline-block;font-size:1.3rem;font-family:monospace;font-weight:bold;letter-spacing:2px;margin-bottom:15px;border:2px solid #2ecc71;">';
+    html += '🔐 暗号解読';
+    html += '</div>';
+    if (question.hint) {
+        html += '<div style="color:#888;font-size:0.9rem;margin-top:10px;">ヒント: ' + question.hint + '</div>';
+    }
+    html += '</div>';
 
     html += '<div class="options">';
     question.options.forEach((option, i) => {
         const selected = answers[currentQuestion] === i ? 'selected' : '';
         html += `
-            <label class="option ${selected}" onclick="selectAnswer(${i})">
+            <label class="option ${selected}" onclick="selectAnswer(${i})" style="font-family:monospace;font-size:1.2rem;letter-spacing:3px;">
                 <input type="radio" name="answer" ${selected ? 'checked' : ''}>
                 <span>${option}</span>
             </label>
