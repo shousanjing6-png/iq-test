@@ -4,6 +4,55 @@ const ADMIN_PASSWORD = 'viavia';
 let allResults = [];
 let examineesData = {}; // 受験者ごとのデータを保持
 
+// 採用判断を生成
+function getHiringRecommendation(iq) {
+    if (iq === null || iq === undefined) {
+        return {
+            class: 'pending',
+            icon: '⏳',
+            text: '判定待ち',
+            detail: 'Mensaテストを受験後に判定されます'
+        };
+    }
+
+    if (iq >= 120) {
+        return {
+            class: 'strongly-recommend',
+            icon: '⭐',
+            text: '採用を強く推奨',
+            detail: `IQ ${iq} - 非常に高い知的能力を持っています。即戦力として期待できます。`
+        };
+    } else if (iq >= 110) {
+        return {
+            class: 'recommend',
+            icon: '✅',
+            text: '採用を推奨',
+            detail: `IQ ${iq} - 平均以上の能力があり、成長が期待できます。`
+        };
+    } else if (iq >= 100) {
+        return {
+            class: 'consider',
+            icon: '🤔',
+            text: '検討',
+            detail: `IQ ${iq} - 標準的な能力です。他の要素も含めて総合的に判断してください。`
+        };
+    } else if (iq >= 90) {
+        return {
+            class: 'caution',
+            icon: '⚠️',
+            text: '要検討',
+            detail: `IQ ${iq} - やや平均を下回ります。面接での評価を重視してください。`
+        };
+    } else {
+        return {
+            class: 'not-recommend',
+            icon: '❌',
+            text: '見送り推奨',
+            detail: `IQ ${iq} - 基準を下回っています。採用は慎重にご検討ください。`
+        };
+    }
+}
+
 // パスワードチェック
 function checkPassword() {
     const input = document.getElementById('passwordInput').value;
@@ -45,6 +94,12 @@ async function fetchCloudData() {
 
     try {
         const cloudData = await fetchFromGoogleSheets();
+
+        // デバッグ: 取得したデータを確認
+        console.log('=== クラウドから取得したデータ ===');
+        cloudData.forEach((item, i) => {
+            console.log(`[${i}] type: "${item.type}", name: "${item.examineeName}", score: ${item.score}/${item.total}`);
+        });
 
         if (cloudData.length === 0) {
             alert('クラウドにデータがありません。');
@@ -353,49 +408,23 @@ function renderExamineeCard(examinee) {
         `;
     }
 
-    // 得意分野・苦手分野（一般教養から）
-    let strengthHtml = '';
-    if (examinee.knowledge && examinee.knowledge.categoryScores) {
-        const strengths = [];
-        const weaknesses = [];
+    // 採用判断を生成
+    const hiringRecommendation = getHiringRecommendation(examinee.mensa ? examinee.mensa.iq : null);
 
-        for (const [category, scores] of Object.entries(examinee.knowledge.categoryScores)) {
-            const percent = (scores.correct / scores.total) * 100;
-            if (percent >= 67) {
-                strengths.push(category);
-            } else if (percent < 50) {
-                weaknesses.push(category);
-            }
-        }
-
-        let tagsHtml = '';
-        if (strengths.length > 0) {
-            tagsHtml += strengths.map(s => `<span class="strength-tag">◎ ${s}</span>`).join('');
-        }
-        if (weaknesses.length > 0) {
-            tagsHtml += weaknesses.map(w => `<span class="weakness-tag">△ ${w}</span>`).join('');
-        }
-
-        if (tagsHtml) {
-            strengthHtml = `
-                <div class="strength-section">
-                    <h4>得意・苦手分野</h4>
-                    <div class="strength-tags">${tagsHtml}</div>
-                </div>
-            `;
-        }
-    } else {
-        strengthHtml = `
-            <div class="strength-section">
-                <h4>得意・苦手分野</h4>
-                <p class="no-test">一般教養テスト未受験</p>
+    const recommendationHtml = `
+        <div class="hiring-recommendation ${hiringRecommendation.class}">
+            <h4>採用判断</h4>
+            <div class="recommendation-result">
+                <span class="recommendation-icon">${hiringRecommendation.icon}</span>
+                <span class="recommendation-text">${hiringRecommendation.text}</span>
             </div>
-        `;
-    }
+            <p class="recommendation-detail">${hiringRecommendation.detail}</p>
+        </div>
+    `;
 
-    // 小論文評価
+    // 小論文評価（既存のものは非表示に）
     let essayHtml = '';
-    if (examinee.essay) {
+    if (false && examinee.essay) {
         const aiEval = generateEssayEvaluation(examinee.essay);
         essayHtml = `
             <div class="essay-summary">
@@ -424,33 +453,13 @@ function renderExamineeCard(examinee) {
                 </div>
             </div>
         `;
-    } else {
-        essayHtml = `
-            <div class="essay-summary">
-                <h4>小論文評価</h4>
-                <p class="no-test">小論文テスト未受験</p>
-            </div>
-        `;
     }
 
     // 受験日
     let dateInfo = '';
-    const dates = [];
-    if (examinee.mensa) dates.push(`Mensa: ${new Date(examinee.mensa.date).toLocaleDateString('ja-JP')}`);
-    if (examinee.knowledge) dates.push(`教養: ${new Date(examinee.knowledge.date).toLocaleDateString('ja-JP')}`);
-    if (examinee.essay) dates.push(`小論文: ${new Date(examinee.essay.date).toLocaleDateString('ja-JP')}`);
-    if (dates.length > 0) {
-        dateInfo = `<div class="test-date">${dates.join(' | ')}</div>`;
+    if (examinee.mensa) {
+        dateInfo = `<div class="test-date">受験日: ${new Date(examinee.mensa.date).toLocaleDateString('ja-JP')}</div>`;
     }
-
-    // 受験回数
-    const testCounts = [];
-    const mensaCount = examineesData[examinee.name + '_' + examinee.birth]?.mensa.length || 0;
-    const knowledgeCount = examineesData[examinee.name + '_' + examinee.birth]?.knowledge.length || 0;
-    const essayCount = examineesData[examinee.name + '_' + examinee.birth]?.essay.length || 0;
-    const totalCount = mensaCount + knowledgeCount + essayCount;
-
-    const countInfo = `<div class="test-date">受験回数: ${totalCount}回（Mensa: ${mensaCount} / 教養: ${knowledgeCount} / 小論文: ${essayCount}）</div>`;
 
     const examKey = examinee.name + '_' + examinee.birth;
 
@@ -463,10 +472,8 @@ function renderExamineeCard(examinee) {
                 </div>
                 ${iqHtml}
             </div>
-            ${strengthHtml}
-            ${essayHtml}
+            ${recommendationHtml}
             ${dateInfo}
-            ${countInfo}
         </div>
     `;
 }

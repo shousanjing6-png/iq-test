@@ -3,6 +3,19 @@
 // Google Sheets API URL
 const GOOGLE_SHEETS_API = 'https://script.google.com/macros/s/AKfycbwA5fxK8GAPzSZrj8BAMs8QQFiBTBza5diBQzg-EydB5_lbixHs7HMvmh0xXzSe9Om1/exec';
 
+// タイプ名を内部形式に変換（日本語 → 英語）
+function convertTypeToInternal(type) {
+    if (!type) return 'unknown';
+    const typeStr = type.toString().toLowerCase();
+
+    // 日本語タイプ名を英語に変換
+    if (typeStr === '一般教養' || typeStr === 'knowledge') return 'knowledge';
+    if (typeStr === '小論文' || typeStr === 'essay') return 'essay';
+    if (typeStr === 'mensa' || typeStr.includes('mensa')) return 'mensa';
+
+    return typeStr;
+}
+
 // Google Sheetsにデータを送信
 function sendToGoogleSheets(data) {
     fetch(GOOGLE_SHEETS_API, {
@@ -23,19 +36,38 @@ function fetchFromGoogleSheets() {
         .then(response => response.json())
         .then(data => {
             // データを変換してローカルストレージと同じ形式にする
-            return data.map(row => ({
-                type: row.type ? row.type.toLowerCase() : 'unknown',
-                examineeName: row.examineeName || '未登録',
-                examineeBirth: row.examineeBirth || '未登録',
-                score: parseInt(row.score) || 0,
-                total: parseInt(row.total) || 0,
-                iq: parseInt(row.iq) || null,
-                date: row.date,
-                time: parseInt(row.time) || 0,
-                themeTitle: row.theme || '',
-                text: row.essayText || '',
-                charCount: row.essayText ? row.essayText.length : 0
-            }));
+            return data.map(row => {
+                const type = convertTypeToInternal(row.type);
+                const result = {
+                    type: type,
+                    examineeName: row.examineeName || '未登録',
+                    examineeBirth: row.examineeBirth || '未登録',
+                    score: parseInt(row.score) || 0,
+                    total: parseInt(row.total) || 0,
+                    iq: parseInt(row.iq) || null,
+                    date: row.date,
+                    time: parseInt(row.time) || 0
+                };
+
+                // 一般教養テストの場合、categoryScoresをパース
+                if (type === 'knowledge' && row.theme) {
+                    try {
+                        result.categoryScores = JSON.parse(row.theme);
+                    } catch (e) {
+                        // パースに失敗した場合はthemeTitleとして保持
+                        result.themeTitle = row.theme;
+                    }
+                }
+
+                // 小論文の場合
+                if (type === 'essay') {
+                    result.themeTitle = row.theme || '';
+                    result.text = row.essayText || '';
+                    result.charCount = row.essayText ? row.essayText.length : 0;
+                }
+
+                return result;
+            });
         })
         .catch(error => {
             console.error('データ取得エラー:', error);

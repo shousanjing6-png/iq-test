@@ -1054,3 +1054,88 @@ input:focus, select:focus, textarea:focus {
 @media (prefers-color-scheme: dark) {
     /* 必要に応じて追加 */
 }
+
+/* ============================================
+   採用判断スタイル
+   ============================================ */
+.hiring-recommendation {
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    margin: 15px 0;
+}
+
+.hiring-recommendation h4 {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.recommendation-result {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.recommendation-icon {
+    font-size: 1.5rem;
+}
+
+.recommendation-text {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.recommendation-detail {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* 採用を強く推奨 */
+.hiring-recommendation.strongly-recommend {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+.hiring-recommendation.strongly-recommend .recommendation-text {
+    color: #e17055;
+}
+
+/* 採用を推奨 */
+.hiring-recommendation.recommend {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+.hiring-recommendation.recommend .recommendation-text {
+    color: #00b894;
+}
+
+/* 検討 */
+.hiring-recommendation.consider {
+    background: linear-gradient(135deg, #ffeaa7 0%, #dfe6e9 100%);
+}
+.hiring-recommendation.consider .recommendation-text {
+    color: #fdcb6e;
+}
+
+/* 要検討 */
+.hiring-recommendation.caution {
+    background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+}
+.hiring-recommendation.caution .recommendation-text {
+    color: #d63031;
+}
+
+/* 見送り推奨 */
+.hiring-recommendation.not-recommend {
+    background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
+}
+.hiring-recommendation.not-recommend .recommendation-text {
+    color: #636e72;
+}
+
+/* 判定待ち */
+.hiring-recommendation.pending {
+    background: #f5f6fa;
+}
+.hiring-recommendation.pending .recommendation-text {
+    color: var(--text-secondary);
+}
